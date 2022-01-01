@@ -1,0 +1,48 @@
+pipeline{
+    agent {
+        label 'evyatar'
+    }
+    options {
+        disableConcurrentBuilds()
+        timeout(time: 2, unit: 'DAYS')
+    }
+    stages {
+        stage('prerequisites'){
+            steps{
+                checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/orbache/test.git']]])
+            }
+        }
+        stage('creating web'){
+            parallel{
+                stage('flask web'){
+                    steps{
+                        echo 'Creating falsk web dockerized and push it'
+                        script{
+                            powershell 'cd "${WORKSPACE}";cd .\\1\\; docker build -t test .'
+                            powershell 'docker tag test 301740015/test:test'
+                            powershell 'docker push 301740015/test:test'
+                        }
+                    }
+                }
+                stage('nginx proxy pass'){
+                    steps{
+                        echo 'Creating nginx dockerized and push it'
+                        script{
+                            powershell 'cd "${WORKSPACE}";cd .\\2\\; docker build -t nginx_pass .'
+                            powershell 'docker tag nginx_pass 301740015/test:nginx_pass'
+                            powershell 'docker push 301740015/test:nginx_pass'
+                        }
+                    }
+                }
+            }
+        }
+        stage('docker-compose'){
+            steps{
+                echo 'Creating falsk web dockerized and push it'
+                script{
+                   powershell 'cd "${WORKSPACE}";cd .\\3\\;docker-compose up'
+                }
+            }
+        }
+    }
+}
