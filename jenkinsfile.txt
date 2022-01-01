@@ -38,7 +38,7 @@ pipeline{
         }
         stage('docker-compose'){
             steps{
-                echo 'Creating falsk web dockerized and push it'
+                echo 'run docker compose'
                 script{
                    powershell 'cd "${WORKSPACE}";cd .\\3\\;docker-compose up'
                 }
